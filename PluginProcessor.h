@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "BandFilter.h"
+//#include "BandFilter.h"
 #include "WaveformDisplay.h"
 
 class JarEqAudioProcessor : public juce::AudioProcessor
@@ -72,7 +72,7 @@ public:
 
 private:
     juce::AudioProcessorValueTreeState mParams;
-    std::vector<BandFilter> mBandFilters;
+    //std::vector<BandFilter> mBandFilters;
     juce::dsp::HighPassFilter<float> mHighPassFilter;
     juce::dsp::LowPassFilter<float> mLowPassFilter;
     juce::dsp::Gain<float> mInputGain;
