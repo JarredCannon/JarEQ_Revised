@@ -2,14 +2,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "WaveformDisplay.h"
-#include "CustomLnF.h"
 
-//==============================================================================
-/**
-*/
-class JarEqAudioProcessorEditor : public juce::AudioProcessorEditor,
-    private juce::Timer
+class JarEqAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
     JarEqAudioProcessorEditor(JarEqAudioProcessor&);
@@ -19,20 +13,24 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 
-    void timerCallback() override;
-
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     JarEqAudioProcessor& audioProcessor;
 
-    juce::Slider freqSlider, gainSlider, qSlider, globalGainSlider, mixSlider;
+    // GUI components
+    juce::Slider freqSlider;
+    juce::Slider gainSlider;
+    juce::Slider qSlider;
     juce::ComboBox filterTypeComboBox;
-    juce::Label freqLabel, gainLabel, qLabel, globalGainLabel, mixLabel;
-    juce::TextButton bypassButton, resetButton;
-
-    WaveformDisplay waveformDisplay;
-    CustomLnF lnf;
+    juce::Slider globalGainSlider;
+    juce::Slider mixSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> qAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> filterTypeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> globalGainAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mixAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JarEqAudioProcessorEditor)
 };

@@ -178,20 +178,22 @@ JarEqAudioProcessor::JarEqAudioProcessor()
 #endif
     ),
 #endif
-    mBandCount(5),
-    mBandTypes{ FilterType::Bell, FilterType::Bell, FilterType::Bell, FilterType::Bell, FilterType::Bell,
-                FilterType::Bell, FilterType::Bell, FilterType::Bell, FilterType::Bell, FilterType::Bell },
-    mBandFreqs{ 100.0f, 300.0f, 800.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f },
-    mBandGains{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
-    mBandQs{ 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f },
-    mGlobalGain(1.0f),
-    mMixed(1.0f),
-    mHpfFreq(20.0f),
-    mLpfFreq(20000.0f)
+{
+addParameter(freqParam = new juce::AudioParameterFloat("frequency", "Frequency", 20.0f, 20000.0f, 1000.0f));
+addParameter(gainParam = new juce::AudioParameterFloat("gain", "Gain", -24.0f, 24.0f, 0.0f));
+addParameter(qParam = new juce::AudioParameterFloat("q", "Q", 0.1f, 10.0f, 1.0f));
+addParameter(filterTypeParam = new juce::AudioParameterChoice("filterType", "Filter Type", juce::StringArray("Bell", "High Pass", "Low Pass", "High Shelf", "Low Shelf"), 0));
+addParameter(globalGainParam = new juce::AudioParameterFloat("globalGain", "Global Gain", -24.0f, 24.0f, 0.0f));
+addParameter(mixParam = new juce::AudioParameterFloat("mix", "Mix", 0.0f, 1.0f, 1.0f));
+
+for (int i = 0; i < NUM_BANDS; ++i)
+{
+    mFilters.push_back(juce::dsp::IIR::Filter<float>());
+}
+}
 {
     updateFilters();
 }
-
 
 void JarEqAudioProcessorEditor::paint(juce::Graphics& g)
 {

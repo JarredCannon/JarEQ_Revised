@@ -3,141 +3,198 @@
 
 //==============================================================================
 JarEqAudioProcessorEditor::JarEqAudioProcessorEditor(JarEqAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p)
+    : AudioProcessorEditor(&p), processor(p)
 {
     setSize(600, 400);
 
-    // Add frequency label and slider
-    addAndMakeVisible(freqLabel);
-    freqLabel.setText("Frequency", juce::NotificationType::dontSendNotification);
-    freqLabel.attachToComponent(&freqSlider, true);
+    auto& lookAndFeel = getLookAndFeel();
+    lookAndFeel.setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::black);
+
     addAndMakeVisible(freqSlider);
-    freqSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    freqSlider.setRange(20.0, 20000.0, 1.0);
-    freqSlider.setValue(1000.0);
-    freqSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    freqSlider.setRange(20.0f, 20000.0f, 1.0f);
+    freqSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+    freqSlider.addListener(this);
 
-    // Add gain label and slider
-    addAndMakeVisible(gainLabel);
-    gainLabel.setText("Gain", juce::NotificationType::dontSendNotification);
-    gainLabel.attachToComponent(&gainSlider, true);
+    addAndMakeVisible(freqLabel);
+    freqLabel.setText("Frequency", juce::dontSendNotification);
+    freqLabel.attachToComponent(&freqSlider, false);
+
     addAndMakeVisible(gainSlider);
-    gainSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    gainSlider.setRange(-24.0, 24.0, 0.1);
-    gainSlider.setValue(0.0);
-    gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    gainSlider.setRange(-24.0f, 24.0f, 0.1f);
+    gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+    gainSlider.addListener(this);
 
-    // Add Q label and slider
-    addAndMakeVisible(qLabel);
-    qLabel.setText("Q", juce::NotificationType::dontSendNotification);
-    qLabel.attachToComponent(&qSlider, true);
+    addAndMakeVisible(gainLabel);
+    gainLabel.setText("Gain (dB)", juce::dontSendNotification);
+    gainLabel.attachToComponent(&gainSlider, false);
+
     addAndMakeVisible(qSlider);
-    qSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    qSlider.setRange(0.1, 10.0, 0.1);
-    qSlider.setValue(1.0);
-    qSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    qSlider.setRange(0.1f, 10.0f, 0.1f);
+    qSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+    qSlider.addListener(this);
 
-    // Add filter type combo box
-    addAndMakeVisible(filterTypeComboBox);
-    filterTypeComboBox.addItem("Bell", 1);
-    filterTypeComboBox.addItem("High Pass", 2);
-    filterTypeComboBox.addItem("Low Pass", 3);
-    filterTypeComboBox.addItem("High Shelf", 4);
-    filterTypeComboBox.addItem("Low Shelf", 5);
-    filterTypeComboBox.setSelectedId(1);
+    addAndMakeVisible(qLabel);
+    qLabel.setText("Q", juce::dontSendNotification);
+    qLabel.attachToComponent(&qSlider, false);
 
-    // Add global gain label and slider
-    addAndMakeVisible(globalGainLabel);
-    globalGainLabel.setText("Global Gain", juce::NotificationType::dontSendNotification);
-    globalGainLabel.attachToComponent(&globalGainSlider, true);
+    addAndMakeVisible(filterTypeBox);
+    filterTypeBox.addItem("Bell", 1);
+    filterTypeBox.addItem("High Pass", 2);
+    filterTypeBox.addItem("Low Pass", 3);
+    filterTypeBox.addItem("High Shelf", 4);
+    filterTypeBox.addItem("Low Shelf", 5);
+    filterTypeBox.setSelectedId(1, juce::dontSendNotification);
+    filterTypeBox.addListener(this);
+
+    addAndMakeVisible(filterTypeLabel);
+    filterTypeLabel.setText("Filter Type", juce::dontSendNotification);
+    filterTypeLabel.attachToComponent(&filterTypeBox, false);
+
     addAndMakeVisible(globalGainSlider);
-    globalGainSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-    globalGainSlider.setRange(-24.0, 24.0, 0.1);
-    globalGainSlider.setValue(0.0);
-    globalGainSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    globalGainSlider.setRange(-24.0f, 24.0f, 0.1f);
+    globalGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+    globalGainSlider.addListener(this);
 
-    // Add mix label and slider
-    addAndMakeVisible(mixLabel);
-    mixLabel.setText("Mix", juce::NotificationType::dontSendNotification);
-    mixLabel.attachToComponent(&mixSlider, true);
+    addAndMakeVisible(globalGainLabel);
+    globalGainLabel.setText("Global Gain (dB)", juce::dontSendNotification);
+    globalGainLabel.attachToComponent(&globalGainSlider, false);
+
     addAndMakeVisible(mixSlider);
-    mixSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-    mixSlider.setRange(0.0, 1.0, 0.01);
+    mixSlider.setRange(0.0f, 1.0f, 0.01f);
+    mixSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+    mixSlider.addListener(this);
 
-    // Add bypass button
-    addAndMakeVisible(bypassButton);
-    bypassButton.setButtonText("Bypass");
-    bypassButton.onClick = [this] { audioProcessor.setBypassed(!audioProcessor.isBypassed()); };
-    bypassButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-    bypassButton.setToggleState(!audioProcessor.isBypassed(), juce::NotificationType::dontSendNotification);
+    addAndMakeVisible(mixLabel);
+    mixLabel.setText("Mix", juce::dontSendNotification);
+    mixLabel.attachToComponent(&mixSlider, false);
 
-    // Add reset button
-    addAndMakeVisible(resetButton);
-    resetButton.setButtonText("Reset");
-    resetButton.onClick = [this] { audioProcessor.reset(); };
+    mCoefficients = processor.getCoefficients();
+    mGlobalGain = processor.getGlobalGain();
+    mMix = processor.getMix();
 
-    // Add waveform display
-    addAndMakeVisible(waveformDisplay);
-    waveformDisplay.setBufferSize(2048);
-    waveformDisplay.setNumChannels(1);
-    waveformDisplay.setSamplesPerBlock(512);
-    waveformDisplay.setLookAndFeel(&lnf);
-    startTimerHz(30);
-
+    updateSliderValues();
 }
 
 JarEqAudioProcessorEditor::~JarEqAudioProcessorEditor()
 {
-    stopTimer();
 }
 
-//==============================================================================
-void JarEqAudioProcessorEditor::paint(juce::Graphics& g)
-{
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-
-    g.setColour(juce::Colours::white);
-    g.setFont(15.0f);
-}
 void JarEqAudioProcessorEditor::resized()
 {
-    juce::Grid grid;
-    using Track = juce::Grid::TrackInfo;
+    const int margin = 10;
+    const int eqMargin = 20;
+    const int labelHeight = 20;
+    const int controlHeight = 60;
+    const int sliderWidth = 200;
+    const int comboBoxWidth = 100;
+    const int filterControlsWidth = sliderWidth + comboBoxWidth + eqMargin;
+    const int globalControlsWidth = sliderWidth + eqMargin;
+    const int filterSectionHeight = labelHeight + controlHeight * mProcessor.getNumBands() + eqMargin * (mProcessor.getNumBands() - 1);
+    const int totalWidth = margin * 2 + filterControlsWidth * 2 + globalControlsWidth + eqMargin;
+    const int totalHeight = margin * 2 + filterSectionHeight + eqMargin * 3 + labelHeight * 2 + controlHeight;
+    setResizable(true, false);
+    setResizeLimits(totalWidth, totalHeight, totalWidth, totalHeight);
 
-    grid.templateRows = { Track(1_fr), Track(1_fr), Track(1_fr), Track(1_fr), Track(4_fr) };
-    grid.templateColumns = { Track(1_fr), Track(1_fr) };
+    int x = margin;
+    int y = margin + labelHeight + controlHeight;
 
-    grid.items = {
-        juce::GridItem(freqLabel).withSize(100, 30).withArea(1, 1),
-        juce::GridItem(freqSlider).withSize(100, 100).withArea(2, 1),
-        juce::GridItem(gainLabel).withSize(100, 30).withArea(1, 2),
-        juce::GridItem(gainSlider).withSize(100, 100).withArea(2, 2),
-        juce::GridItem(qLabel).withSize(100, 30).withArea(1, 3),
-        juce::GridItem(qSlider).withSize(100, 100).withArea(2, 3),
-        juce::GridItem(filterTypeComboBox).withSize(100, 30).withArea(1, 4),
-        juce::GridItem(globalGainLabel).withSize(100, 30).withArea(1, 5),
-        juce::GridItem(globalGainSlider).withSize(100, 200).withArea(2, 5),
-        juce::GridItem(mixLabel).withSize(100, 30).withArea(1, 6),
-        juce::GridItem(mixSlider).withSize(100, 200).withArea(2, 6),
-        juce::GridItem(bypassButton).withSize(100, 30).withArea(1, 7),
-        juce::GridItem(resetButton).withSize(100, 30).withArea(2, 7),
-        juce::GridItem(waveformDisplay).withSize(500, 200).withArea(3, 1, 5, 2),
-    };
-
-    grid.performLayout(getLocalBounds());
-
-}
-
-void JarEqAudioProcessorEditor::timerCallback()
-{
-    auto waveform = audioProcessor.getWaveformDisplay();
-    if (waveform.getNumSamples() > 0)
+    for (int i = 0; i < mProcessor.getNumBands(); ++i)
     {
-        waveformDisplay.setSamples(waveform.getReadPointer(0), waveform.getNumSamples());
+        auto& freqSlider = mFreqSliders[i];
+        freqSlider.setBounds(x, y, sliderWidth, controlHeight);
+
+        auto& freqLabel = mFreqLabels[i];
+        freqLabel.setBounds(x, y - labelHeight, sliderWidth, labelHeight);
+
+        auto& gainSlider = mGainSliders[i];
+        gainSlider.setBounds(x + sliderWidth + eqMargin, y, sliderWidth, controlHeight);
+
+        auto& gainLabel = mGainLabels[i];
+        gainLabel.setBounds(x + sliderWidth + eqMargin, y - labelHeight, sliderWidth, labelHeight);
+
+        auto& qSlider = mQSliders[i];
+        qSlider.setBounds(x + sliderWidth * 2 + eqMargin * 2 + comboBoxWidth, y, sliderWidth, controlHeight);
+
+        auto& qLabel = mQLabels[i];
+        qLabel.setBounds(x + sliderWidth * 2 + eqMargin * 2 + comboBoxWidth, y - labelHeight, sliderWidth, labelHeight);
+
+        auto& filterTypeBox = mFilterTypeBoxes[i];
+        filterTypeBox.setBounds(x + sliderWidth + eqMargin, y - labelHeight - eqMargin, comboBoxWidth, labelHeight);
+
+        y += controlHeight + eqMargin;
     }
-    else
+
+    y = margin;
+    x = margin * 2 + filterControlsWidth;
+
+    auto& globalGainSlider = mGlobalGainSlider;
+    globalGainSlider.setBounds(x, y, sliderWidth, controlHeight);
+
+    auto& globalGainLabel = mGlobalGainLabel;
+    globalGainLabel.setBounds(x, y - labelHeight, sliderWidth, labelHeight);
+
+    y += controlHeight + eqMargin;
+
+    auto& mixSlider = mMixSlider;
+    mixSlider.setBounds(x, y, sliderWidth, controlHeight);
+
+    auto& mixLabel = mMixLabel;
+    mixLabel.setBounds(x, y - labelHeight, sliderWidth, labelHeight);
+
+    x += sliderWidth + eqMargin;
+
+    auto& bypassButton = mBypassButton;
+    bypassButton.setBounds(x, y, comboBoxWidth, controlHeight);
+
+    auto& bypassLabel = mBypassLabel;
+    bypassLabel.setBounds(x, y - labelHeight, comboBoxWidth, labelHeight);
+
+    y += controlHeight + eqMargin;
+
+    auto& analyzerButton = mAnalyzerButton;
+    analyzerButton.setBounds(x, y, comboBoxWidth, controlHeight);
+
+    auto& analyzerLabel = mAnalyzerLabel;
+    analyzerLabel.setText("Analyzer Type", juce::dontSendNotification);
+
+    analyzerLabel.attachToComponent(&analyzerButton, false);
+
+    addAndMakeVisible(analyzerLabel);
+    addAndMakeVisible(analyzerButton);
+
+    analyzerButton.setSelectedId(1, juce::dontSendNotification);
+    analyzerButton.addListener(this);
+
+    x += comboBoxWidth + spacing;
+
+    addAndMakeVisible(mAnalyzerDisplay);
+    mAnalyzerDisplay.setBounds(x, y, displayWidth, displayHeight);
+    mAnalyzerDisplay.setBufferSize(2048);
+
+    mAnalyzerDisplay.setUpdateInterval(50);
+    mAnalyzerDisplay.setRange(0.0f, 1.0f);
+
+    x = padding;
+    y += displayHeight + spacing;
+
+    for (int i = 0; i < numBands; ++i)
     {
-        waveformDisplay.clear();
+        addAndMakeVisible(mBandSliders[i]);
+        addAndMakeVisible(mBandLabels[i]);
+
+        mBandSliders[i].setRange(-24.0f, 24.0f, 0.1f);
+        mBandSliders[i].setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 20);
+        mBandSliders[i].addListener(this);
+
+        mBandLabels[i].setText(juce::String(i + 1), juce::dontSendNotification);
+        mBandLabels[i].attachToComponent(&mBandSliders[i], true);
+
+        x += controlWidth + spacing;
+
+        if (x + controlWidth + padding > getWidth())
+        {
+            x = padding;
+            y += controlHeight + spacing;
+        }
     }
 }
-
